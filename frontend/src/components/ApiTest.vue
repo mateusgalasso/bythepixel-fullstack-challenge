@@ -19,7 +19,7 @@ const fetchDetails = async (user) => {
   //convert latitude and longitude to user's location decimal with 2 decimal places
   let lat = parseFloat(user.latitude).toFixed(2);
   let lon = parseFloat(user.longitude).toFixed(2);
-  let url = "";
+  let url;
   //random true of false just to test both endpoints
   if (Math.random() > 0.5) {
     url = `http://localhost/weather/${user.id}`;

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\WeatherService;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -20,22 +21,9 @@ class GetWeatherController extends Controller
         $lat = $request->lat;
         $lon = $request->lon;
 
-        $cacheKey = "weather.{$lat},{$lon}";
-        $data = Cache::get($cacheKey);
+        $weather = new WeatherService();
+        $data = $weather->getWeather($lat, $lon);
 
-        if (!$data) {
-            $apiKey = config('services.openweather.key');
-            $response = Http::get("https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lon}&units=imperial&appid=$apiKey");
-            if ($response->getStatusCode() === 200) {
-                $data = json_decode($response->getBody()->getContents(), true);
-                // Cache the data for 30 minutes
-                Cache::put($cacheKey, $data, now()->addMinutes(30));
-            } else {
-                $data = [
-                    'error' => 'Unable to fetch weather data',
-                ];
-            }
-        }
 
         return response()->json($data);
     }

@@ -4,13 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\WeatherService;
-use GuzzleHttp\Client;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 
 class GetWeatherController extends Controller
 {
+    public function __construct(protected WeatherService $weatherService)
+    {
+    }
     public function __invoke(Request $request, User $user)
     {
         // validate
@@ -18,12 +18,7 @@ class GetWeatherController extends Controller
             'lat' => 'required|numeric',
             'lon' => 'required|numeric',
         ]);
-        $lat = $request->lat;
-        $lon = $request->lon;
-
-        $weather = new WeatherService();
-        $data = $weather->getWeather($lat, $lon);
-
+        $data = $this->weatherService->getWeather($request->lat, $request->lon);
 
         return response()->json($data);
     }

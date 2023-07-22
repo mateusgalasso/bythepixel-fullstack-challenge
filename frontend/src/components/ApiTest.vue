@@ -19,9 +19,14 @@ const fetchDetails = async (user) => {
   //convert latitude and longitude to user's location decimal with 2 decimal places
   let lat = parseFloat(user.latitude).toFixed(2);
   let lon = parseFloat(user.longitude).toFixed(2);
-  const url = `http://localhost/weather?lat=${lat}&lon=${lon}`;
+  let url = "";
+  //random true of false just to test both endpoints
+  if (Math.random() > 0.5) {
+    url = `http://localhost/weather/${user.id}`;
+  } else {
+    url = `http://localhost/weather?lat=${lat}&lon=${lon}`;
+  }
   const response = await (await fetch(url)).json();
-  console.log("response", response);
   // if code 401, 403, 404, 500, etc. handle it here
   if (!response.cod || response.cod !== 200) {
     console.log("Error fetching weather data", response);

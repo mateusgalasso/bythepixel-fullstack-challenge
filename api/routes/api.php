@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GetUserWeatherController;
 use App\Http\Controllers\GetWeatherController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -23,3 +24,4 @@ Route::get('/users', function () {
 });
 
 Route::get('/weather', GetWeatherController::class);
+Route::get('/weather/{user}', GetUserWeatherController::class);

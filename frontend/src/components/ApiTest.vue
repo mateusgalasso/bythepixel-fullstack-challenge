@@ -10,7 +10,7 @@ onMounted(async () => {
 });
 
 async function fetchData() {
-  const url = "http://localhost/";
+  const url = "http://localhost/users";
   apiResponse.value = await (await fetch(url)).json();
   users.value = apiResponse.value.users;
 }
@@ -19,9 +19,9 @@ const fetchDetails = async (user) => {
   //convert latitude and longitude to user's location decimal with 2 decimal places
   let lat = parseFloat(user.latitude).toFixed(2);
   let lon = parseFloat(user.longitude).toFixed(2);
-  // const url = `https://api.openweathermap.org/data/2.5/weather?lat=44.34&lon=10.99&appid=7ec19f15335c70699fdee5e6aa1ff011`;
-  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=imperial&appid=7ec19f15335c70699fdee5e6aa1ff011`;
+  const url = `http://localhost/weather?lat=${lat}&lon=${lon}`;
   const response = await (await fetch(url)).json();
+  console.log("response", response);
   // if code 401, 403, 404, 500, etc. handle it here
   if (!response.cod || response.cod !== 200) {
     console.log("Error fetching weather data", response);
@@ -29,7 +29,7 @@ const fetchDetails = async (user) => {
   }
   userDetails.data = {
     ...user,
-    weather: response.weather[0], // assuming the weather index you want is at 0
+    weather: response.weather[0], // first weather data
     main: response.main, // additional main weather data
   };
   userDetails.show = true;

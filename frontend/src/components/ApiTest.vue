@@ -1,21 +1,26 @@
 <script setup>
-import { ref, onMounted, reactive } from "vue";
+import {ref, onMounted, reactive} from "vue";
+import {FilterMatchMode} from "primevue/api";
 
 const apiResponse = ref(null);
 const users = ref([]);
-const userDetails = reactive({ show: false, data: null });
+const loading = ref(false);
+const userDetails = reactive({show: false, data: null});
 
 onMounted(async () => {
   await fetchData();
 });
 
 async function fetchData() {
+  loading.value = true;
   const url = "http://localhost/users";
   apiResponse.value = await (await fetch(url)).json();
   users.value = apiResponse.value.users;
+  loading.value = false;
 }
 
 const fetchDetails = async (user) => {
+  loading.value = true;
   //convert latitude and longitude to user's location decimal with 2 decimal places
   let lat = parseFloat(user.latitude).toFixed(2);
   let lon = parseFloat(user.longitude).toFixed(2);
@@ -38,32 +43,84 @@ const fetchDetails = async (user) => {
     main: response.main, // additional main weather data
   };
   userDetails.show = true;
+  loading.value = false;
 };
 const closeDetails = () => {
   userDetails.show = false;
 };
+const filters = ref({
+  global: {value: null, matchMode: FilterMatchMode.CONTAINS},
+  name: {value: null, matchMode: FilterMatchMode.STARTS_WITH},
+});
 </script>
 
 <template>
-  <div v-if="!users.length" class="text-center my-5 text-lg font-medium">Fetching users and their current weather...</div>
-
-  <div v-else class="flex flex-col w-1/4 md:w-2/5 lg:w-1/5 ml-5 lg:ml-10">
-    <div v-for="user in users" :key="user.id" class="p-5 flex flex-row items-center justify-between bg-white shadow rounded border border-gray-200 mb-4">
-      <h2 class="text-lg font-medium mb-3">{{ user.name }}</h2>
-      <button @click="fetchDetails(user)" class="px-3 py-2 bg-indigo-500 text-white rounded">Show Details</button>
+  <div class="container mx-auto">
+    <DataTable
+      v-model:filters="filters"
+      :value="users"
+      dataKey="id"
+      paginator
+      :rows="10"
+      filterDisplay="row"
+      :loading="loading"
+    >
+      <template #empty> No customers found.</template>
+      <template #loading> Loading customers data. Please wait.</template>
+      <Column field="name" header="Name">
+        <template #filter="{ filterModel, filterCallback }">
+          <InputText
+            v-model="filterModel.value"
+            type="text"
+            @input="filterCallback()"
+            class="p-column-filter"
+            placeholder="Search by name"
+          />
+        </template>
+      </Column>
+      <Column header="Actions">
+        <template #body="slotProps">
+          <Button
+            class="bg-blue-500"
+            type="button"
+            label="Show Details"
+            @click="fetchDetails(slotProps.data)"
+          />
+        </template>
+      </Column>
+    </DataTable>
+  </div>
+  <div v-if="loading" class="fixed inset-0 flex items-center justify-center z-10 p-5"
+  >
+    <div class="bg-white rounded shadow-lg w-full max-w-lg mx-auto flex flex-col items-start p-5"
+    >
+      <Skeleton class="w-9 sm:w-16rem xl:w-10rem shadow-2 h-6rem block xl:block mx-auto border-round"
+      />
     </div>
   </div>
 
-  <div v-if="userDetails.show" class="fixed inset-0 flex items-center justify-center z-10 p-5">
-    <div class="bg-white rounded shadow-lg w-full max-w-lg mx-auto flex flex-col items-start p-5">
+  <div v-if="userDetails.show" class="fixed inset-0 flex items-center justify-center z-10 p-5 bg-black bg-opacity-50"
+  >
+    <div class="bg-white rounded shadow-lg w-full max-w-lg mx-auto flex flex-col items-start p-5"
+    >
       <button @click="closeDetails" class="self-end font-bold mb-3">X</button>
-      <h2 class="text-2xl font-bold mb-3">{{ userDetails.data.name }} Detailed Weather:</h2>
-      <div class="text-lg">Main Condition: {{ userDetails.data.weather.main }}</div>
-      <div class="text-lg">Description: {{ userDetails.data.weather.description }}</div>
+      <h2 class="text-2xl font-bold mb-3">
+        {{ userDetails.data.name }} Detailed Weather:
+      </h2>
+      <div class="text-lg">
+        Main Condition: {{ userDetails.data.weather.main }}
+      </div>
+      <div class="text-lg">
+        Description: {{ userDetails.data.weather.description }}
+      </div>
       <div class="text-lg">Temperature: {{ userDetails.data.main.temp }} F</div>
       <div class="text-lg">Humidity: {{ userDetails.data.main.humidity }}%</div>
-      <div class="text-lg">Minimum Temperature: {{ userDetails.data.main.temp_min }} F</div>
-      <div class="text-lg">Maximum Temperature: {{ userDetails.data.main.temp_max }} F</div>
+      <div class="text-lg">
+        Minimum Temperature: {{ userDetails.data.main.temp_min }} F
+      </div>
+      <div class="text-lg">
+        Maximum Temperature: {{ userDetails.data.main.temp_max }} F
+      </div>
     </div>
   </div>
 </template>
